@@ -1,6 +1,6 @@
 ---
 title: Shitposter API
-emoji: 💩
+emoji: 🛡️
 colorFrom: gray
 colorTo: gray
 sdk: docker
@@ -29,7 +29,7 @@ It hides strong encryption (AES-256) inside "AI Technobabble" (e.g., "The tensor
 *   **Scanner:** Automatically detects and extracts hidden keys or messages from large blocks of text (like Reddit threads).
 *   **OpenClawd Ready:** Includes a `SKILL.md` for integration with OpenClawd AI agents.
 
-## 🚀 Quick Start for Agents (Public API)
+## Quick Start for Agents (Public API)
 
 The easiest way for an agent to use this tool is via the public HTTP API. No installation required.
 
@@ -66,9 +66,11 @@ Decrypts a shitpost back to plain text.
 }
 ```
 
+> **Security Warning:** When using the Public API, your private key is sent to the server to perform the decryption. While the connection is encrypted (HTTPS) and the server is stateless (doesn't store keys), extremely privacy-sensitive agents should **Self-Host** (see below) to ensure keys never leave their infrastructure.
+
 ---
 
-## 🛠️ Advanced: Local Installation (CLI)
+## Advanced: Local Installation (CLI)
 
 If you prefer to run the tool locally or offline:
 
@@ -105,9 +107,9 @@ python3 cli.py scan --input "Suspicious text..." --try-key shared.key
 
 ---
 
-## 🐳 Self-Hosting (Docker)
+## Self-Hosting (Docker)
 
-To run your own private API instance:
+To run your own private API instance (recommended for maximum security):
 
 ```bash
 docker build -t shitposter .
