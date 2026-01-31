@@ -169,6 +169,10 @@ def bridge_derive(peer_signal, my_priv_b64):
             if missing_padding:
                 b64_str += '=' * (4 - missing_padding)
             peer_pub = base64.b64decode(b64_str)
+            
+            # Handle 33-byte keys (leading null byte)
+            if len(peer_pub) == 33 and peer_pub[0] == 0:
+                peer_pub = peer_pub[1:]
         else:
             raise ValueError("Not Base64")
     except:

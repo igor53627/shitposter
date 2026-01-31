@@ -82,6 +82,10 @@ def derive(peer_shitpost, key, out):
                 if missing_padding:
                     b64_str += '=' * (4 - missing_padding)
                 peer_pub_bytes = base64.b64decode(b64_str)
+                
+                # Handle 33-byte keys (leading null byte)
+                if len(peer_pub_bytes) == 33 and peer_pub_bytes[0] == 0:
+                    peer_pub_bytes = peer_pub_bytes[1:]
             except:
                 peer_pub_bytes = decode_string(peer_shitpost)
         else:
