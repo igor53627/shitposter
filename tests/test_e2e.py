@@ -163,6 +163,23 @@ class TestShitposterE2E(unittest.TestCase):
         self.assertEqual(res_scan.returncode, 0)
         self.assertIn(f"[!] DECRYPTED SUCCESS: {welcome_msg}", res_scan.stdout)
         print("[SUCCESS] Bob successfully read the welcome message!")
+        
+        # 6. Verify manual 'decrypt' command works with Session JSON
+        print("[5] Verifying manual 'decrypt' command...")
+        # We need the cipher text string from the reply.
+        # Since 'scan' found it, we know it's extractable.
+        # Let's just use the 'alice_reply_text' directly as input to decrypt?
+        # Decrypt expects the *shitpost string* or just words?
+        # 'decrypt' command calls 'decode_string' which handles the stripping.
+        
+        res_dec = self.run_cli([
+            'decrypt', alice_reply_text,
+            '--key', 'bob_shared.json'
+        ])
+        
+        self.assertEqual(res_dec.returncode, 0)
+        self.assertIn(welcome_msg, res_dec.stdout)
+        print("[SUCCESS] Manual decrypt confirmed.")
 
 if __name__ == '__main__':
     unittest.main()

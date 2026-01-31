@@ -213,6 +213,9 @@ def scan(input_text, file, try_key):
 
     # Add the sparse sequence as a candidate if it's long enough
     if len(all_valid_words) > 12:
+        # Mark it as sparse for the UI? 
+        # For simplicity, we just append it. But let's check if it's identical to a contiguous one.
+        # If the text was purely contiguous, unique_candidates logic handles it.
         candidates.append(all_valid_words)
 
     unique_candidates = []
@@ -233,6 +236,11 @@ def scan(input_text, file, try_key):
         found += 1
         seq_str = " ".join(seq)
         
+        # Heuristic: Is this a dense run or a sparse collection?
+        # If the original text length is roughly same as seq length -> Dense.
+        # If original text is huge (1000 words) and seq is small (20) -> Sparse.
+        # But we don't have original text mapping here easily.
+        
         if length == 32:
             print(f"[*] POTENTIAL PUBLIC KEY (32 words):")
             print(f"    {seq_str[:50]}... (truncated)")
@@ -240,6 +248,8 @@ def scan(input_text, file, try_key):
         else:
             print(f"[*] POTENTIAL MESSAGE ({length} words):")
             print(f"    {seq_str[:50]}... (truncated)")
+            if length > 100 or (len(words) > length * 2):
+                 print(f"    (Note: This is a sparse match. Might be false positive if scanning normal text.)")
             
             if shared_key_bytes:
                 try:
