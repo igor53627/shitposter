@@ -166,6 +166,19 @@ When entering a new community, analyze the top 1000 most common words in that fo
 *   **Encryption:** Uses `cryptography` library (AES-GCM, X25519, HKDF). Mathematically secure.
 *   **Steganography:** The hiding mechanism relies on a 256-word dictionary. While "Stealth Mode" mimics grammar, sophisticated statistical analysis *could* potentially detect the anomaly (unusual word frequency). Use with awareness.
 
+## Security Architecture (Protocol v2)
+
+The current version implements **Protocol v2**, featuring significant cryptographic hardening over the initial release:
+
+1.  **HKDF Context Binding:** 
+    The shared secret derivation now binds the **sorted public keys** of both parties into the HKDF `info` parameter. This ensures the derived key is mathematically unique to the specific pair of identities and prevents potential cross-context replay attacks.
+
+2.  **Directional Session Keys:**
+    Instead of a single shared key, the protocol derives two separate 32-byte keys from the master secret:
+    *   `TX Key`: Used for encrypting messages sent by the lexicographically "lower" public key holder.
+    *   `RX Key`: Used for encrypting messages sent by the lexicographically "higher" public key holder.
+    This strictly separates encryption and decryption channels, mitigating reflection attacks and nonce reuse risks.
+
 ## Contact / Public Signal
 
 To communicate securely with the maintainer, generate your identity and send an encrypted message (using `derive` + `encrypt`) to this Public Signal:
