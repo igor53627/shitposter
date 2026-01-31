@@ -158,6 +158,15 @@ def scan_text(req: ScanRequest):
         
     return {"found": results}
 
+@app.post("/channel/generate")
+def generate_channel_key():
+    """Generates a random 32-byte symmetric key for broadcasting."""
+    key = os.urandom(32)
+    return {
+        "key_b64": base64.b64encode(key).decode('utf-8'),
+        "key_words": encode_bytes(key)
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)

@@ -316,5 +316,57 @@ def auto_reply(input_text, file, key, welcome_msg, stealth):
         click.echo(r['reply'])
         click.echo("")
 
+@cli.group()
+def util():
+    """Utility commands for key management."""
+    pass
+
+@util.command()
+@click.argument('file', type=click.Path(exists=True))
+def bytes_to_words(file):
+    """Convert a binary key file to a 32-word string (for sharing)."""
+    with open(file, 'rb') as f:
+        data = f.read()
+    
+    if len(data) != 32:
+        click.echo(f"[-] Warning: File is {len(data)} bytes (expected 32 for a key).", err=True)
+    
+    from steg import encode_bytes
+    click.echo(encode_bytes(data))
+
+@util.command()
+@click.argument('words')
+@click.option('--out', default='channel.key', help='Output file.')
+def words_to_bytes(words, out):
+    """Convert a 32-word string back to a binary key file."""
+    from steg import decode_string
+    data = decode_string(words)
+    
+    if len(data) != 32:
+        click.echo(f"[-] Warning: Result is {len(data)} bytes (expected 32).", err=True)
+    
+    with open(out, 'wb') as f:
+        f.write(data)
+    os.chmod(out, 0o600)
+    click.echo(f"[+] Saved {len(data)} bytes to {out}")
+
+@util.command()
+@click.option('--out', default='channel.key', help='Output file for new random key.')
+def generate_channel_key(out):
+    """Generate a random 32-byte symmetric key for broadcasting."""
+    key = os.urandom(32)
+    with open(out, 'wb') as f:
+        f.write(key)
+    os.chmod(out, 0o600)
+    
+    from steg import encode_bytes
+    words = encode_bytes(key)
+    
+    click.echo(f"[+] Generated Channel Key: {out}")
+    click.echo("[+] Word Representation (Share this securely):")
+    click.echo("-" * 60)
+    click.echo(words)
+    click.echo("-" * 60)
+
 if __name__ == '__main__':
     cli()

@@ -8,8 +8,8 @@
 - [ ] **Forward Secrecy Strategy:** Investigate a "Ratchet" mechanism or ephemeral session keys. Currently, compromise of the static Identity Key compromises all historical messages.
 
 ### Features
-- [ ] **One-to-Many Broadcasts:** Implement a "Channel Key" workflow.
-    - Host generates a persistent AES key.
+- [x] **One-to-Many Broadcasts:** Implement a "Channel Key" workflow.
+    - Host generates a persistent AES key (`util generate-channel-key`).
     - Host distributes this key (encoded as 32 words) inside the encrypted One-to-One handshake message.
     - Host broadcasts messages encrypted with this Channel Key.
     - All onboarded agents can decrypt the broadcast.
