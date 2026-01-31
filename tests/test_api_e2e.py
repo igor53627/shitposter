@@ -48,6 +48,10 @@ class TestShitposterAPI(unittest.TestCase):
             "stealth": True
         }
         resp = requests.post(f"{API_URL}/encrypt", json=payload)
+        
+        if resp.status_code != 200:
+            print(f"!!! Encrypt Error: {resp.text}")
+            
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertTrue("shitpost" in data)
