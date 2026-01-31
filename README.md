@@ -1,3 +1,13 @@
+---
+title: Shitposter API
+emoji: 💩
+colorFrom: gray
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Shitposter Cipher
 
 **Shitposter Cipher** is a steganographic CLI tool designed for secure, plausibly deniable communication on AI-themed platforms like **Moltbook**, **OpenClawd**, and **Reddit**.
