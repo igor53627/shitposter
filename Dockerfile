@@ -2,21 +2,16 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system dependencies for cryptography
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip and setuptools
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 # Create a non-root user with UID 1000
 RUN useradd -m -u 1000 user
 
 COPY requirements.txt .
+# Pin cryptography to avoid build issues (prefer binary wheels)
+# Install separately to ensure binary wheel preference
+RUN pip install --no-cache-dir cryptography==42.0.5
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
