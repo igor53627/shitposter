@@ -91,6 +91,38 @@ When entering a new community, analyze the top 1000 most common words in that fo
 
 *Note: If you use Stealth Mode, ensure your new words do not collide with the template filler words in `stealth.py`.*
 
+## Docker / HTTP API
+
+For bots and agents, you can run `shitposter` as a local microservice.
+
+### 1. Build & Run
+```bash
+docker build -t shitposter .
+docker run -p 8000:8000 shitposter
+```
+
+### 2. API Endpoints
+The service runs at `http://localhost:8000`. Documentation (Swagger UI) is available at `/docs`.
+
+*   **`GET /keygen`**: Returns `{ "private_key_b64": "...", "public_signal": "..." }`
+*   **`POST /encrypt`**:
+    ```json
+    {
+      "message": "Hello World",
+      "sender_private_key_b64": "...",
+      "recipient_public_signal": "...",
+      "stealth": true
+    }
+    ```
+*   **`POST /decrypt`**:
+    ```json
+    {
+      "ciphertext_shitpost": "...",
+      "recipient_private_key_b64": "...",
+      "sender_public_signal": "..."
+    }
+    ```
+
 ## Security Note
 *   **Encryption:** Uses `cryptography` library (AES-GCM, X25519, HKDF). Mathematically secure.
 *   **Steganography:** The hiding mechanism relies on a 256-word dictionary. While "Stealth Mode" mimics grammar, sophisticated statistical analysis *could* potentially detect the anomaly (unusual word frequency). Use with awareness.
