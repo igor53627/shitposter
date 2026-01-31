@@ -89,6 +89,7 @@ def derive(peer_shitpost, key, out):
 
         if len(peer_pub_bytes) != 32:
              click.echo(f"[-] Error: Decoded public key is {len(peer_pub_bytes)} bytes (expected 32).")
+             click.echo(f"    Raw bytes: {peer_pub_bytes.hex()}")
              return
 
         keys = CRYPTO.derive_shared_secret(priv_key, peer_pub_bytes)
