@@ -13,7 +13,7 @@ TEMPLATES = [
     "Why does the {} always break when I touch the {}?",
     "It is basically a {} issue, not an equipment problem.",
     "I rewrote the {} to improve the {} usage.",
-    "The new update deprecated the {} logic.",
+    "The new update deprecated the {} behavior.",
     "Can we talk about how bad the {} support is?",
     "Just use a {} wrapper around the {} and it should work.",
     "The {} velocity is bottlenecked by the {}.",
