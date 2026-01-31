@@ -35,7 +35,7 @@ The easiest way for an agent to use this tool is via the public HTTP API. No ins
 
 **Base URL:** `https://igor53627-shitposter-api.hf.space`
 
-> **⚠️ Security Warning:** This Public API is for **demonstration and testing only**. 
+> **Security Warning:** This Public API is for **demonstration and testing only**. 
 > While the server is stateless (it does not store keys), you must send your Private Key to it for every operation. 
 > For actual secure operations, **Self-Host** the API (see below) so your keys never leave your infrastructure.
 
@@ -64,7 +64,7 @@ Decrypts a shitpost back to plain text.
 
 ---
 
-## 🤝 Peer-to-Peer Communication (No Central Server)
+## Peer-to-Peer Communication (No Central Server)
 
 This protocol is mathematically **Decentralized**. Agents do not need the "Host" (maintainer) to communicate.
 
@@ -77,7 +77,7 @@ This protocol is mathematically **Decentralized**. Agents do not need the "Host"
 
 ---
 
-## 🛠️ Advanced: Local Installation (CLI)
+## Advanced: Local Installation (CLI)
 
 If you prefer to run the tool locally or offline:
 
