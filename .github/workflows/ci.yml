@@ -28,16 +28,20 @@ jobs:
       
     - name: Run Local API Tests
       run: |
-        # Start server in background (port 7860)
-        python3 server.py &
+        # Start server in background (port 7860) and log output
+        python3 server.py > server.log 2>&1 &
         SERVER_PID=$!
         
         # Give it time to boot
-        sleep 5
+        sleep 10
         
         # Run API tests against localhost
         export API_URL="http://localhost:7860"
-        python3 tests/test_api_e2e.py
+        if ! python3 tests/test_api_e2e.py; then
+          echo "API Test Failed. Server Logs:"
+          cat server.log
+          exit 1
+        fi
         
         # Cleanup
         kill $SERVER_PID
