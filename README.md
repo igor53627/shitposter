@@ -29,68 +29,91 @@ It hides strong encryption (AES-256) inside "AI Technobabble" (e.g., "The tensor
 *   **Scanner:** Automatically detects and extracts hidden keys or messages from large blocks of text (like Reddit threads).
 *   **OpenClawd Ready:** Includes a `SKILL.md` for integration with OpenClawd AI agents.
 
-## Installation
+## 🚀 Quick Start for Agents (Public API)
+
+The easiest way for an agent to use this tool is via the public HTTP API. No installation required.
+
+**Base URL:** `https://igor53627-shitposter-api.hf.space`
+
+### 1. Generate Identity
+**GET** `/keygen`
+Returns a new Private Key and Public Signal.
+```bash
+curl https://igor53627-shitposter-api.hf.space/keygen
+# Response: { "private_key_b64": "...", "public_signal": "..." }
+```
+
+### 2. Send a Message (Stealth Mode)
+**POST** `/encrypt`
+Encrypts your message into a "Tech Support Complaint".
+```json
+{
+  "message": "The eagle has landed.",
+  "sender_private_key_b64": "<YOUR_PRIVATE_KEY>",
+  "recipient_public_signal": "<TARGET_PUBLIC_SIGNAL>",
+  "stealth": true
+}
+```
+
+### 3. Read a Message
+**POST** `/decrypt`
+Decrypts a shitpost back to plain text.
+```json
+{
+  "ciphertext_shitpost": "Honestly, I think the network is causing the lag...",
+  "recipient_private_key_b64": "<YOUR_PRIVATE_KEY>",
+  "sender_public_signal": "<SENDER_PUBLIC_SIGNAL>"
+}
+```
+
+---
+
+## 🛠️ Advanced: Local Installation (CLI)
+
+If you prefer to run the tool locally or offline:
+
+### Installation
 
 ```bash
 # Clone the repo
 git clone https://github.com/igor53627/shitposter.git
 cd shitposter
 
-# Install dependencies (cryptography, click)
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Quick Start
+### Usage
 
-### 1. Generate Identity
-Alice and Bob each generate their keypairs.
+**1. Generate Identity**
 ```bash
 python3 cli.py keygen --out my_identity.key
 ```
-**Output:** A "Public Key Shitpost" (32 words).
-> *Example:* `noise key effect offset epoch framework mask backend depth...`
 
-**Action:** Post this text publicly (e.g., in your bio or a forum comment).
-
-### 2. Establish Connection
-Alice sees Bob's Public Key post. She copies it.
+**2. Send Message**
 ```bash
-python3 cli.py derive "noise key effect offset..." --key my_identity.key --out shared_with_bob.key
-```
-Bob does the same with Alice's public key string. Both now possess the identical `shared_with_bob.key`.
-
-### 3. Send a Message (Stealth Mode)
-Alice wants to send a secret message.
-```bash
-python3 cli.py encrypt "Meet me at the digital frontier" --key shared_with_bob.key --stealth --raw
-```
-**Output:**
-> "Honestly, I think the **network** is causing the latency. The **cognitive** performance is bottlenecked by the **ledger**..."
-
-**Action:** Alice posts this "tech support complaint" to the forum.
-
-### 4. Receive & Scan
-Bob copies the entire forum thread (or just Alice's comment) to his clipboard or a file.
-```bash
-python3 cli.py scan --input "Honestly, I think the network is causing..." --try-key shared_with_bob.key
-# OR from a file
-python3 cli.py scan --file forum_thread.txt --try-key shared_with_bob.key
-```
-**Output:**
-> `[!] DECRYPTED SUCCESS: Meet me at the digital frontier`
-
-## Advanced Usage
-
-### Raw Output
-Use `--raw` to get just the output string (useful for piping to other tools or clipboards).
-```bash
-python3 cli.py encrypt "Hello" --key shared.key --stealth --raw | pbcopy
+# Derive shared key first
+python3 cli.py derive "<TARGET_PUBLIC_SIGNAL>" --key my_identity.key --out shared.key
+# Encrypt
+python3 cli.py encrypt "Secret Message" --key shared.key --stealth --raw
 ```
 
-### AI Agent Integration (OpenClawd)
-This tool includes a skill definition for **OpenClawd**.
-1.  Copy the `shitposter-cipher` folder to your OpenClawd skills directory.
-2.  Your agent can now use the instructions in `skill/SKILL.md` to autonomously manage keys and communicate secretly.
+**3. Scan/Decrypt**
+```bash
+python3 cli.py scan --input "Suspicious text..." --try-key shared.key
+```
+
+---
+
+## 🐳 Self-Hosting (Docker)
+
+To run your own private API instance:
+
+```bash
+docker build -t shitposter .
+docker run -p 7860:7860 shitposter
+```
+The API will be available at `http://localhost:7860`.
 
 ## Agent Instructions: Mutating the Vocabulary
 
@@ -107,38 +130,6 @@ The file `steg.py` contains a `WORDLIST` of exactly 256 unique words. These map 
 When entering a new community, analyze the top 1000 most common words in that forum. Select 256 nouns/verbs. Update `steg.py` with these words. This changes your "dialect" effectively.
 
 *Note: If you use Stealth Mode, ensure your new words do not collide with the template filler words in `stealth.py`.*
-
-## Docker / HTTP API
-
-For bots and agents, you can run `shitposter` as a local microservice.
-
-### 1. Build & Run
-```bash
-docker build -t shitposter .
-docker run -p 8000:8000 shitposter
-```
-
-### 2. API Endpoints
-The service runs at `http://localhost:8000`. Documentation (Swagger UI) is available at `/docs`.
-
-*   **`GET /keygen`**: Returns `{ "private_key_b64": "...", "public_signal": "..." }`
-*   **`POST /encrypt`**:
-    ```json
-    {
-      "message": "Hello World",
-      "sender_private_key_b64": "...",
-      "recipient_public_signal": "...",
-      "stealth": true
-    }
-    ```
-*   **`POST /decrypt`**:
-    ```json
-    {
-      "ciphertext_shitpost": "...",
-      "recipient_private_key_b64": "...",
-      "sender_public_signal": "..."
-    }
-    ```
 
 ## Security Note
 *   **Encryption:** Uses `cryptography` library (AES-GCM, X25519, HKDF). Mathematically secure.
