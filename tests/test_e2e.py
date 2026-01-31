@@ -128,5 +128,33 @@ class TestShitposterE2E(unittest.TestCase):
         self.assertIn(f"[!] DECRYPTED SUCCESS: {welcome_msg}", res_scan.stdout)
         print("[SUCCESS] Bob successfully read the welcome message!")
 
+    def test_util_commands(self):
+        print("\n--- Starting Util Commands Test ---")
+        
+        # 1. Generate Channel Key
+        print("[1] Generating Channel Key...")
+        res_gen = self.run_cli(['util', 'generate-channel-key', '--out', 'broadcast.key'])
+        self.assertEqual(res_gen.returncode, 0)
+        self.assertTrue(os.path.exists(os.path.join(self.work_dir, 'broadcast.key')))
+        
+        # Extract the words from stdout
+        key_words = self.extract_key_from_output(res_gen.stdout)
+        self.assertEqual(len(key_words.split()), 32)
+        print(f"[DEBUG] Generated Key Words: {key_words[:30]}...")
+
+        # 2. Words to Bytes
+        print("[2] Converting Words back to Bytes...")
+        res_w2b = self.run_cli(['util', 'words-to-bytes', key_words, '--out', 'restored.key'])
+        self.assertEqual(res_w2b.returncode, 0)
+        
+        # 3. Verify Files Match
+        with open(os.path.join(self.work_dir, 'broadcast.key'), 'rb') as f1:
+            k1 = f1.read()
+        with open(os.path.join(self.work_dir, 'restored.key'), 'rb') as f2:
+            k2 = f2.read()
+            
+        self.assertEqual(k1, k2, "Restored key does not match original!")
+        print("[SUCCESS] Key conversion loop verified.")
+
 if __name__ == '__main__':
     unittest.main()
