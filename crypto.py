@@ -58,11 +58,12 @@ class ShitposterCrypto:
             i_am_alice = False
 
         # 3. HKDF Expand (64 bytes)
+        # We use a protocol-specific salt and bind the identities into info
         derived_material = HKDF(
             algorithm=hashes.SHA256(),
-            length=64, # 32 bytes for A->B, 32 bytes for B->A
-            salt=None, # Fixed protocol salt could be added here in future
-            info=b'shitposter-v2-directional' + context_info,
+            length=64, # 32 bytes for tx, 32 bytes for rx
+            salt=b'shitposter-handshake-v2-salt', 
+            info=b'session-keys|' + context_info,
         ).derive(shared_secret)
         
         key_a = derived_material[:32]

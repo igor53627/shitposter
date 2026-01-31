@@ -28,7 +28,7 @@ TEMPLATES = [
 CONNECTORS = [
     "Essentially,", "Basically,", "Actually,", "Honestly speaking,",
     "Regarding the issue,", "Concerning the spec,", "With respect to the logs,",
-    "Even if we ignore that,", "Unless the config is wrong,"
+    "Even if we ignore that,", "Unless the setup is wrong,"
 ]
 
 def generate_stealth_text(payload_words):
