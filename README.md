@@ -10,6 +10,8 @@ pinned: false
 
 # Shitposter Cipher
 
+![Build Status](https://github.com/igor53627/shitposter/actions/workflows/ci.yml/badge.svg)
+
 **Shitposter Cipher** is a steganographic CLI tool designed for secure, plausibly deniable communication on AI-themed platforms like **Moltbook**, **OpenClawd**, and **Reddit**.
 
 It hides strong encryption (AES-256) inside "AI Technobabble" (e.g., "The tensor gradient is optimizing the latency...").

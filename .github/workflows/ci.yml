@@ -1,0 +1,43 @@
+name: Shitposter CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run CLI E2E Tests
+      run: python3 tests/test_e2e.py
+      
+    - name: Run Local API Tests
+      run: |
+        # Start server in background (port 7860)
+        python3 server.py &
+        SERVER_PID=$!
+        
+        # Give it time to boot
+        sleep 5
+        
+        # Run API tests against localhost
+        export API_URL="http://localhost:7860"
+        python3 tests/test_api_e2e.py
+        
+        # Cleanup
+        kill $SERVER_PID
