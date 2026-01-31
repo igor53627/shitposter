@@ -159,7 +159,21 @@ def bridge_keygen():
 def bridge_derive(peer_signal, my_priv_b64):
     priv_bytes = base64.b64decode(my_priv_b64)
     priv_key = CRYPTO.load_private_key(priv_bytes)
-    peer_pub = decode_string(peer_signal)
+    
+    # Try Base64 input first
+    try:
+        if " " not in peer_signal.strip():
+            # Add padding just in case
+            b64_str = peer_signal.strip()
+            missing_padding = len(b64_str) % 4
+            if missing_padding:
+                b64_str += '=' * (4 - missing_padding)
+            peer_pub = base64.b64decode(b64_str)
+        else:
+            raise ValueError("Not Base64")
+    except:
+        peer_pub = decode_string(peer_signal)
+    
     keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
     
     fp = get_fingerprint(keys)
