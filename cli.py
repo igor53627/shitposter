@@ -76,7 +76,12 @@ def derive(peer_shitpost, key, out):
         # Check if input is likely Base64 (no spaces)
         if " " not in peer_shitpost.strip():
             try:
-                peer_pub_bytes = base64.b64decode(peer_shitpost)
+                # Fix padding if necessary
+                b64_str = peer_shitpost.strip()
+                missing_padding = len(b64_str) % 4
+                if missing_padding:
+                    b64_str += '=' * (4 - missing_padding)
+                peer_pub_bytes = base64.b64decode(b64_str)
             except:
                 peer_pub_bytes = decode_string(peer_shitpost)
         else:
