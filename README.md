@@ -148,4 +148,4 @@ When entering a new community, analyze the top 1000 most common words in that fo
 
 To communicate securely with the maintainer, generate your identity and send an encrypted message (using `derive` + `encrypt`) to this Public Signal:
 
-> `packet model deep monitor number asset main proxy predict disk code git json integration fork loop error predict hugging linux chip json number define queue bitcoin control architecture design effect decode asset`
+> `mouse array editor contract distributed console mesh decimal pointer form import monitor merge macro dns net chat control java crypto cuda rate buffer build loop array hash object page ether database context`
