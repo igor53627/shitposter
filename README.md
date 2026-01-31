@@ -176,12 +176,12 @@ When entering a new community, analyze the top 1000 most common words in that fo
 *   **Encryption:** Uses `cryptography` library (AES-GCM, X25519, HKDF). Mathematically secure.
 *   **Steganography:** The hiding mechanism relies on a 256-word dictionary. While "Stealth Mode" mimics grammar, sophisticated statistical analysis *could* potentially detect the anomaly (unusual word frequency). Use with awareness.
 
-## Security Architecture (Protocol v2)
+## Security Architecture
 
-The current version implements **Protocol v2**, featuring significant cryptographic hardening over the initial release:
+The protocol implements robust cryptographic hardening to ensure confidentiality and integrity:
 
 1.  **HKDF Context Binding:** 
-    The shared secret derivation now binds the **sorted public keys** of both parties into the HKDF `info` parameter. This ensures the derived key is mathematically unique to the specific pair of identities and prevents potential cross-context replay attacks.
+    The shared secret derivation binds the **sorted public keys** of both parties into the HKDF `info` parameter (along with a protocol-specific salt). This ensures the derived key is mathematically unique to the specific pair of identities and prevents potential cross-context replay attacks.
 
 2.  **Directional Session Keys:**
     Instead of a single shared key, the protocol derives two separate 32-byte keys from the master secret:
