@@ -59,11 +59,11 @@ def encrypt_message(req: EncryptRequest):
         if len(recipient_pub_bytes) != 32:
             raise HTTPException(status_code=400, detail="Invalid Public Signal (must be 32 bytes)")
             
-        # Derive Secret
-        shared_key = CRYPTO.derive_shared_secret(sender_priv, recipient_pub_bytes)
+        # Derive Secret (Returns {'tx': bytes, 'rx': bytes})
+        keys = CRYPTO.derive_shared_secret(sender_priv, recipient_pub_bytes)
         
-        # Encrypt
-        encrypted_payload = CRYPTO.encrypt_message(shared_key, req.message)
+        # Use TX key for encryption
+        encrypted_payload = CRYPTO.encrypt_message(keys['tx'], req.message)
         
         # Steganography
         raw_words = [WORDLIST[b] for b in encrypted_payload]
@@ -76,6 +76,8 @@ def encrypt_message(req: EncryptRequest):
         return {"shitpost": output}
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/decrypt")
@@ -88,15 +90,20 @@ def decrypt_message(req: DecryptRequest):
         
         sender_pub_bytes = decode_string(req.sender_public_signal)
         
-        # Derive Secret
-        shared_key = CRYPTO.derive_shared_secret(recipient_priv, sender_pub_bytes)
+        # Derive Secret (Returns {'tx': bytes, 'rx': bytes})
+        # Note: derive_shared_secret handles the sort order internally.
+        # If I am Recipient (Alice), and Sender is Bob:
+        # derive(AlicePriv, BobPub) -> returns Alice's View.
+        # Alice's View: 'rx' is the key Bob used to encrypt.
+        
+        keys = CRYPTO.derive_shared_secret(recipient_priv, sender_pub_bytes)
         
         # Parse Shitpost
         # Note: decode_string handles the stealth/punctuation stripping now
         payload = decode_string(req.ciphertext_shitpost)
         
-        # Decrypt
-        plaintext = CRYPTO.decrypt_message(shared_key, payload)
+        # Decrypt using RX key
+        plaintext = CRYPTO.decrypt_message(keys['rx'], payload)
         
         return {"message": plaintext}
         
