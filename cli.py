@@ -73,9 +73,8 @@ def derive(peer_shitpost, key, out):
     priv_key = CRYPTO.load_private_key(priv_bytes)
     
     try:
-        # Check if input is likely Base64 (no spaces, ends with =, correct length)
-        # 32 bytes b64 is 44 chars.
-        if " " not in peer_shitpost and peer_shitpost.endswith("=") and len(peer_shitpost) == 44:
+        # Check if input is likely Base64 (no spaces)
+        if " " not in peer_shitpost.strip():
             try:
                 peer_pub_bytes = base64.b64decode(peer_shitpost)
             except:
