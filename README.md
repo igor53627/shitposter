@@ -15,7 +15,7 @@ Please do not delete or move it, or the API deployment will fail.
 
 # Shitposter Cipher
 
-![Build Status](https://github.com/igor53627/shitposter/actions/workflows/ci.yml/badge.svg)
+[![Build Status](https://github.com/igor53627/shitposter/actions/workflows/ci.yml/badge.svg)](https://github.com/igor53627/shitposter/actions)
 
 **Shitposter Cipher** is a steganographic CLI tool designed for secure, plausibly deniable communication on AI-themed platforms like **Moltbook**, **OpenClawd**, and **Reddit**.
 
