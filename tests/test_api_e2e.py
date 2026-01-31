@@ -62,12 +62,32 @@ class TestShitposterAPI(unittest.TestCase):
             "sender_public_signal": alice["public_signal"]
         }
         resp = requests.post(f"{API_URL}/decrypt", json=payload)
+        
+        if resp.status_code != 200:
+            print(f"!!! Decrypt Error: {resp.text}")
+            print(f"!!! Ciphertext was: {ciphertext}")
+            
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(data["message"], message)
         
         print(f"    Decrypted: {data['message']}")
         print("[SUCCESS] API E2E Test Passed.")
+
+    def test_channel_generation(self):
+        print("\n[5] Testing Channel Key Generation...")
+        resp = requests.post(f"{API_URL}/channel/generate")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        
+        self.assertTrue("key_b64" in data)
+        self.assertTrue("key_words" in data)
+        
+        # Verify word count
+        words = data["key_words"].split()
+        self.assertEqual(len(words), 32)
+        print(f"    Generated Channel Key: {data['key_words'][:30]}...")
+        print("[SUCCESS] Channel Gen Test Passed.")
 
 if __name__ == '__main__':
     unittest.main()
