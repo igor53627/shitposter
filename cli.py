@@ -73,7 +73,16 @@ def derive(peer_shitpost, key, out):
     priv_key = CRYPTO.load_private_key(priv_bytes)
     
     try:
-        peer_pub_bytes = decode_string(peer_shitpost)
+        # Check if input is likely Base64 (no spaces, ends with =, correct length)
+        # 32 bytes b64 is 44 chars.
+        if " " not in peer_shitpost and peer_shitpost.endswith("=") and len(peer_shitpost) == 44:
+            try:
+                peer_pub_bytes = base64.b64decode(peer_shitpost)
+            except:
+                peer_pub_bytes = decode_string(peer_shitpost)
+        else:
+            peer_pub_bytes = decode_string(peer_shitpost)
+
         if len(peer_pub_bytes) != 32:
              click.echo(f"[-] Error: Decoded public key is {len(peer_pub_bytes)} bytes (expected 32).")
              return
