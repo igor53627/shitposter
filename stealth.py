@@ -26,9 +26,9 @@ TEMPLATES = [
 # Simple Markov-like tech jargon generator
 # This makes the text look like a "stream of consciousness" from a bot.
 CONNECTORS = [
-    "essentially", "basically", "actually", "honestly", "honestly speaking",
-    "regarding the", "concerning the", "with respect to", "as for the",
-    "whenever I try to", "even if we", "unless the", "until the"
+    "Essentially,", "Basically,", "Actually,", "Honestly speaking,",
+    "Regarding the issue,", "Concerning the spec,", "With respect to the logs,",
+    "Even if we ignore that,", "Unless the config is wrong,"
 ]
 
 def generate_stealth_text(payload_words):
@@ -40,9 +40,12 @@ def generate_stealth_text(payload_words):
     
     # We use a mix of templates and connectors to build a "paragraph"
     while i < len(payload_words):
-        # 30% chance of using a connector
+        sentence_parts = []
+        
+        # 30% chance of using a connector prefix
         if random.random() < 0.3:
-            result.append(random.choice(CONNECTORS))
+            connector = random.choice(CONNECTORS)
+            sentence_parts.append(connector)
             
         tmpl = random.choice(TEMPLATES)
         slots = tmpl.count("{}")
@@ -55,6 +58,17 @@ def generate_stealth_text(payload_words):
         chunk = payload_words[i : i+slots]
         i += slots
         
-        result.append(tmpl.format(*chunk))
+        filled_template = tmpl.format(*chunk)
+        
+        # Grammar fix: If we have a connector, lowercase the template (unless it starts with 'I' or proper noun)
+        if sentence_parts:
+            first_word = filled_template.split()[0]
+            if first_word not in ["I", "My", "Did", "Is", "Why"]: # Keep these capped usually
+                # Lowercase the first letter
+                filled_template = filled_template[0].lower() + filled_template[1:]
+        
+        sentence_parts.append(filled_template)
+        
+        result.append(" ".join(sentence_parts))
         
     return " ".join(result)
