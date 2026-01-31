@@ -24,14 +24,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
+      - name: Prepare Files
+        run: |
+          mkdir public
+          cp web/index.html public/
+          cp crypto.py steg.py stealth.py public/
+          # Fix relative paths in index.html for the flat structure
+          sed -i 's/\.\.\//\.\//g' public/index.html
+        
       - name: Setup Pages
         uses: actions/configure-pages@v5
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the entire repository so relative paths work
-          path: '.'
+          path: 'public'
           
       - name: Deploy to GitHub Pages
         id: deployment
