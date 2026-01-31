@@ -129,7 +129,7 @@
                 statusEl.innerText = "Syncing cipher logic...";
                 
                 // Fetch our local files and write them to Pyodide FS
-                const files = ['crypto.py', 'steg.py', 'stealth.py'];
+                const files = ['crypto.py', 'steg.py', 'stealth.py', 'fingerprint.py'];
                 const timestamp = new Date().getTime();
                 for (const f of files) {
                     const resp = await fetch(`../${f}?v=${timestamp}`);
@@ -144,6 +144,7 @@ import base64
 from crypto import ShitposterCrypto
 from steg import encode_bytes, decode_string
 from stealth import generate_stealth_text
+from fingerprint import get_fingerprint
 
 CRYPTO = ShitposterCrypto()
 
@@ -160,9 +161,13 @@ def bridge_derive(peer_signal, my_priv_b64):
     priv_key = CRYPTO.load_private_key(priv_bytes)
     peer_pub = decode_string(peer_signal)
     keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
+    
+    fp = get_fingerprint(keys)
+    
     return json.dumps({
         "tx": base64.b64encode(keys['tx']).decode('utf-8'),
-        "rx": base64.b64encode(keys['rx']).decode('utf-8')
+        "rx": base64.b64encode(keys['rx']).decode('utf-8'),
+        "fingerprint": fp
     })
 
 def bridge_encrypt(msg, key_json_or_words):
@@ -215,7 +220,12 @@ def bridge_decrypt(shitpost, key_json_or_words):
                     const myPriv = prompt("Enter your Private Key (Base64):");
                     if (!myPriv) return;
                     result = pyodide.globals.get('bridge_derive')(input, myPriv);
-                    outputEl.innerText = "SESSION ESTABLISHED\n\n" + result;
+                    const data = JSON.parse(result);
+                    // Remove fingerprint from data before showing JSON
+                    const fp = data.fingerprint;
+                    delete data.fingerprint;
+                    
+                    outputEl.innerText = "SESSION ESTABLISHED\n\nFINGERPRINT: " + fp + "\n\nKEYS (JSON):\n" + JSON.stringify(data, null, 2);
                 }
                 else if (action === 'encrypt') {
                     result = pyodide.globals.get('bridge_encrypt')(input, key);

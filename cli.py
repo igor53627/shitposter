@@ -90,7 +90,12 @@ def derive(peer_shitpost, key, out):
             json.dump(output_data, f, indent=2)
         os.chmod(out, 0o600)
         
+        from fingerprint import get_fingerprint
+        fp = get_fingerprint(keys)
+        
         click.echo(f"[+] Session established! Keys saved to {out}")
+        click.echo(f"[!] SESSION FINGERPRINT: {fp}")
+        click.echo("    (Verify this matches your peer's screen to prevent MITM)")
     except Exception as e:
         click.echo(f"[-] Error deriving secret: {e}")
 

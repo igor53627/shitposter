@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir public
           cp web/index.html public/
-          cp crypto.py steg.py stealth.py public/
+          cp crypto.py steg.py stealth.py fingerprint.py public/
           # Fix relative paths in index.html for the flat structure
           sed -i 's/\.\.\//\.\//g' public/index.html
         
