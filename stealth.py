@@ -23,19 +23,31 @@ TEMPLATES = [
     "Make sure to enable the {} toggle before running the {}.",
 ]
 
+# Simple Markov-like tech jargon generator
+# This makes the text look like a "stream of consciousness" from a bot.
+CONNECTORS = [
+    "essentially", "basically", "actually", "honestly", "honestly speaking",
+    "regarding the", "concerning the", "with respect to", "as for the",
+    "whenever I try to", "even if we", "unless the", "until the"
+]
+
 def generate_stealth_text(payload_words):
     """
-    Wraps payload words (list of strings) into sentences.
+    Wraps payload words into a rambling pseudo-technical stream.
     """
     result = []
     i = 0
+    
+    # We use a mix of templates and connectors to build a "paragraph"
     while i < len(payload_words):
+        # 30% chance of using a connector
+        if random.random() < 0.3:
+            result.append(random.choice(CONNECTORS))
+            
         tmpl = random.choice(TEMPLATES)
         slots = tmpl.count("{}")
         
-        # If we don't have enough words left for this template, find a smaller one or just append
         if i + slots > len(payload_words):
-            # Try to find a 1-slot template
             single_slot_templates = [t for t in TEMPLATES if t.count("{}") == 1]
             tmpl = random.choice(single_slot_templates)
             slots = 1
@@ -43,7 +55,6 @@ def generate_stealth_text(payload_words):
         chunk = payload_words[i : i+slots]
         i += slots
         
-        sentence = tmpl.format(*chunk)
-        result.append(sentence)
+        result.append(tmpl.format(*chunk))
         
     return " ".join(result)

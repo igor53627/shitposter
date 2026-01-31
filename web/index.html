@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shitposter Cipher - Secure Web Terminal</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a1a1a;
+            color: #d4d4d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #252526;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        h1 {
+            text-align: center;
+            color: #569cd6;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        .status {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            color: #ce9178;
+        }
+        textarea, input {
+            width: 100%;
+            background-color: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            color: #d4d4d4;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea { height: 120px; resize: vertical; }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #1177bb; }
+        button:disabled { background-color: #333; cursor: not-allowed; }
+        .label { font-size: 0.9rem; margin-bottom: 0.3rem; color: #9cdcfe; }
+        .output-container {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #333;
+        }
+        #output {
+            background-color: #000;
+            color: #4ec9b0;
+            padding: 1rem;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-height: 50px;
+        }
+        .copy-btn { margin-top: 0.5rem; font-size: 0.7rem; padding: 0.3rem; width: auto; float: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SHITPOSTER TERMINAL</h1>
+        <div id="status" class="status">Initializing WebAssembly environment...</div>
+
+        <div class="label">Identity / Key File (JSON or Channel Words)</div>
+        <textarea id="keyInput" placeholder="Paste your session.json or channel words here..."></textarea>
+
+        <div class="label">Input Text (Message to Encrypt or Shitpost to Decrypt)</div>
+        <textarea id="mainInput" placeholder="Enter message or shitpost..."></textarea>
+
+        <div class="controls">
+            <button id="btnEncrypt" onclick="doAction('encrypt')" disabled>ENCRYPT (STEALTH)</button>
+            <button id="btnDecrypt" onclick="doAction('decrypt')" disabled>DECRYPT</button>
+        </div>
+        
+        <div class="controls">
+            <button id="btnKeygen" onclick="doAction('keygen')" disabled>GENERATE IDENTITY</button>
+            <button id="btnDerive" onclick="doAction('derive')" disabled>DERIVE SESSION</button>
+        </div>
+
+        <div class="output-container">
+            <div class="label">Console Output</div>
+            <div id="output">System ready for input.</div>
+            <button class="copy-btn" onclick="copyOutput()">COPY TO CLIPBOARD</button>
+        </div>
+    </div>
+
+    <script>
+        let pyodide;
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+
+        async function initPyodide() {
+            try {
+                pyodide = await loadPyodide();
+                statusEl.innerText = "Loading cryptography modules...";
+                await pyodide.loadPackage(["micropip"]);
+                const micropip = pyodide.pyimport("micropip");
+                await micropip.install('cryptography');
+                
+                statusEl.innerText = "Syncing cipher logic...";
+                
+                // Fetch our local files and write them to Pyodide FS
+                const files = ['crypto.py', 'steg.py', 'stealth.py'];
+                for (const f of files) {
+                    const resp = await fetch(`../${f}`);
+                    const text = await resp.text();
+                    pyodide.FS.writeFile(f, text);
+                }
+
+                // Initialize our Bridge Code
+                await pyodide.runPythonAsync(`
+import json
+import base64
+from crypto import ShitposterCrypto
+from steg import encode_bytes, decode_string
+from stealth import generate_stealth_text
+
+CRYPTO = ShitposterCrypto()
+
+def bridge_keygen():
+    priv, pub_bytes = CRYPTO.generate_keypair()
+    priv_bytes = CRYPTO.get_private_bytes(priv)
+    return json.dumps({
+        "private_key_b64": base64.b64encode(priv_bytes).decode('utf-8'),
+        "public_signal": encode_bytes(pub_bytes)
+    })
+
+def bridge_derive(peer_signal, my_priv_b64):
+    priv_bytes = base64.b64decode(my_priv_b64)
+    priv_key = CRYPTO.load_private_key(priv_bytes)
+    peer_pub = decode_string(peer_signal)
+    keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
+    return json.dumps({
+        "tx": base64.b64encode(keys['tx']).decode('utf-8'),
+        "rx": base64.b64encode(keys['rx']).decode('utf-8')
+    })
+
+def bridge_encrypt(msg, key_json_or_words):
+    # Determine key type
+    try:
+        data = json.loads(key_json_or_words)
+        key = base64.b64decode(data['tx'])
+    except:
+        key = decode_string(key_json_or_words)
+    
+    payload = CRYPTO.encrypt_message(key, msg)
+    from steg import WORDLIST
+    words = [WORDLIST[b] for b in payload]
+    return generate_stealth_text(words)
+
+def bridge_decrypt(shitpost, key_json_or_words):
+    try:
+        data = json.loads(key_json_or_words)
+        key = base64.b64decode(data['rx'])
+    except:
+        key = decode_string(key_json_or_words)
+        
+    payload = decode_string(shitpost)
+    return CRYPTO.decrypt_message(key, payload)
+                `);
+
+                statusEl.innerText = "WASM Secure Terminal Online";
+                statusEl.style.color = "#4ec9b0";
+                document.querySelectorAll('button').forEach(b => b.disabled = false);
+
+            } catch (err) {
+                statusEl.innerText = "Initialization Failed: " + err.message;
+                statusEl.style.color = "#f44747";
+            }
+        }
+
+        async function doAction(action) {
+            const input = document.getElementById('mainInput').value;
+            const key = document.getElementById('keyInput').value;
+            outputEl.innerText = "Processing...";
+
+            try {
+                let result;
+                if (action === 'keygen') {
+                    result = pyodide.globals.get('bridge_keygen')();
+                    const data = JSON.parse(result);
+                    outputEl.innerText = "NEW IDENTITY GENERATED\n\nPRIVATE KEY (KEEP SECRET):\n" + data.private_key_b64 + "\n\nPUBLIC SIGNAL (POST THIS):\n" + data.public_signal;
+                } 
+                else if (action === 'derive') {
+                    const myPriv = prompt("Enter your Private Key (Base64):");
+                    if (!myPriv) return;
+                    result = pyodide.globals.get('bridge_derive')(input, myPriv);
+                    outputEl.innerText = "SESSION ESTABLISHED\n\n" + result;
+                }
+                else if (action === 'encrypt') {
+                    result = pyodide.globals.get('bridge_encrypt')(input, key);
+                    outputEl.innerText = result;
+                }
+                else if (action === 'decrypt') {
+                    result = pyodide.globals.get('bridge_decrypt')(input, key);
+                    outputEl.innerText = result;
+                }
+            } catch (err) {
+                outputEl.innerText = "ERROR: " + err.message;
+            }
+        }
+
+        function copyOutput() {
+            navigator.clipboard.writeText(outputEl.innerText);
+            alert("Copied to clipboard.");
+        }
+
+        initPyodide();
+    </script>
+</body>
+</html>
