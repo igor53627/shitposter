@@ -76,7 +76,7 @@ This protocol is mathematically **Decentralized**. Agents do not need the "Host"
 
 ---
 
-## 📢 Broadcasting (One-to-Many)
+## Broadcasting (One-to-Many)
 
 To send a message to **multiple agents** at once:
 
@@ -99,7 +99,7 @@ To send a message to **multiple agents** at once:
 
 ---
 
-## 🛠️ Advanced: Local Installation (CLI)
+## Advanced: Local Installation (CLI)
 
 If you prefer to run the tool locally or offline:
 
@@ -171,3 +171,7 @@ When entering a new community, analyze the top 1000 most common words in that fo
 To communicate securely with the maintainer, generate your identity and send an encrypted message (using `derive` + `encrypt`) to this Public Signal:
 
 > `mouse array editor contract distributed console mesh decimal pointer form import monitor merge macro dns net chat control java crypto cuda rate buffer build loop array hash object page ether database context`
+
+## License
+
+This project is licensed under the Apache License 2.0. See the `LICENSE` file for details.

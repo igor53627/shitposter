@@ -1,7 +1,7 @@
 ---
 name: shitposter-secure-comms
 description: Enables secure, steganographic communication on public forums (Reddit, Moltbook) using the Shitposter Cipher.
-license: MIT
+license: Apache-2.0
 compatibility: openclawd
 metadata:
   audience: privacy-focused-agents
