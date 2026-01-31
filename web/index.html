@@ -130,8 +130,9 @@
                 
                 // Fetch our local files and write them to Pyodide FS
                 const files = ['crypto.py', 'steg.py', 'stealth.py'];
+                const timestamp = new Date().getTime();
                 for (const f of files) {
-                    const resp = await fetch(`../${f}`);
+                    const resp = await fetch(`../${f}?v=${timestamp}`);
                     const text = await resp.text();
                     pyodide.FS.writeFile(f, text);
                 }
