@@ -3,8 +3,6 @@
 ## Backlog
 
 ### Cryptography Improvements
-- [ ] **Bind Context in HKDF:** Improve `derive_shared_secret` in `crypto.py`. Instead of `salt=None` and static `info`, include the sorted public keys of both parties in the HKDF `info` parameter. This binds the derived key strictly to the pair of identities.
-- [ ] **Directional Key Separation:** Derive two keys from the shared secret (e.g., `K_AB` and `K_BA`) so Alice and Bob use different keys for sending. This prevents reflection attacks and reduces nonce collision risks.
 - [ ] **Forward Secrecy Strategy:** Investigate a "Ratchet" mechanism or ephemeral session keys. Currently, compromise of the static Identity Key compromises all historical messages.
 
 ### Features
@@ -21,6 +19,8 @@
 *(None)*
 
 ## Done
+- [x] **Bind Context in HKDF:** Bind sorted public keys into HKDF `info`.
+- [x] **Directional Key Separation:** Derive separate TX/RX keys to prevent reflection attacks.
 - [x] **Core Crypto:** X25519 + AES-256-GCM.
 - [x] **Steganography:** 256-word mapping + Stealth Templates.
 - [x] **API:** FastAPI Microservice on Hugging Face Spaces.
