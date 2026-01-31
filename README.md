@@ -94,3 +94,9 @@ When entering a new community, analyze the top 1000 most common words in that fo
 ## Security Note
 *   **Encryption:** Uses `cryptography` library (AES-GCM, X25519, HKDF). Mathematically secure.
 *   **Steganography:** The hiding mechanism relies on a 256-word dictionary. While "Stealth Mode" mimics grammar, sophisticated statistical analysis *could* potentially detect the anomaly (unusual word frequency). Use with awareness.
+
+## Contact / Public Signal
+
+To communicate securely with the maintainer, generate your identity and send an encrypted message (using `derive` + `encrypt`) to this Public Signal:
+
+> `packet model deep monitor number asset main proxy predict disk code git json integration fork loop error predict hugging linux chip json number define queue bitcoin control architecture design effect decode asset`
