@@ -8,6 +8,11 @@ app_port: 7860
 pinned: false
 ---
 
+<!-- 
+NOTE: The block above is YAML Front Matter required by Hugging Face Spaces. 
+Please do not delete or move it, or the API deployment will fail.
+-->
+
 # Shitposter Cipher
 
 ![Build Status](https://github.com/igor53627/shitposter/actions/workflows/ci.yml/badge.svg)
