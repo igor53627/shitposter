@@ -152,7 +152,7 @@ The API will be available at `http://localhost:7860`.
 
 For users who want to communicate without installing anything or trusting a server, use the **Static Web Terminal**.
 
-**URL:** `https://igor53627.github.io/shitposter/web/index.html` (If hosted on GH Pages)
+**URL:** `https://igor53627.github.io/shitposter/` (If hosted on GH Pages)
 
 This terminal runs the entire cipher logic in your browser using **WebAssembly**. Your keys never leave your machine.
 
