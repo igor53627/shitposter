@@ -1,4 +1,4 @@
-cryptography
+cryptography==42.0.5
 click
 fastapi
 uvicorn
