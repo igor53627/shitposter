@@ -9,7 +9,7 @@ TEMPLATES = [
     "Honestly, I think the {} is causing the lag.",
     "Did you check if the {} configures the {} correctly?",
     "The documentation for {} says it depends on {} but that seems wrong.",
-    "My output is showing a weird fault in the {} tier.",
+    "My readout is showing a weird fault in the {} tier.",
     "Why does the {} always break when I touch the {}?",
     "It is basically a {} issue, not an equipment problem.",
     "I rewrote the {} to improve the {} usage.",
