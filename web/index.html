@@ -115,7 +115,28 @@
 
     <script>
         let pyodide;
-        // ... (initPyodide remains same) ...
+        async function initPyodide() {
+            try {
+                pyodide = await loadPyodide();
+                statusEl.innerText = "Loading cryptography modules...";
+                await pyodide.loadPackage(["micropip"]);
+                const micropip = pyodide.pyimport("micropip");
+                await micropip.install('cryptography');
+                
+                statusEl.innerText = "Syncing cipher logic...";
+                
+                // Fetch our local files and write them to Pyodide FS
+                const files = ['crypto.py', 'steg.py', 'stealth.py', 'fingerprint.py'];
+                const timestamp = new Date().getTime();
+                for (const f of files) {
+                    const resp = await fetch(`${f}?v=${timestamp}`);
+                    if (!resp.ok) throw new Error(`Failed to fetch ${f}: ${resp.status}`);
+                    const text = await resp.text();
+                    pyodide.FS.writeFile(f, text);
+                }
+
+                // Initialize our Bridge Code
+                await pyodide.runPythonAsync(`
 
         async function doAction(action) {
             const input = document.getElementById('mainInput').value.trim();
