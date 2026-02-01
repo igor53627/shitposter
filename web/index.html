@@ -185,7 +185,7 @@ def bridge_derive(peer_signal, my_priv_b64):
     if len(peer_pub) != 32:
         # Convert to hex for debug
         hex_val = "".join("{:02x}".format(x) for x in peer_pub)
-        raise ValueError(f"Invalid Key Length: Got {len(peer_pub)} bytes. Expected 32.\nHex: {hex_val}")
+        raise ValueError(f"Invalid Key Length: Got {len(peer_pub)} bytes. Expected 32. Hex: {hex_val}")
     
     keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
     
