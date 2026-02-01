@@ -331,6 +331,17 @@
             if (session && session[mode]) {
                 return base64ToBytes(session[mode]);
             }
+            const trimmed = raw.trim();
+            if (trimmed && !/\s/.test(trimmed)) {
+                try {
+                    const decoded = base64ToBytes(trimmed);
+                    if (decoded.length === 32) {
+                        return decoded;
+                    }
+                } catch (err) {
+                    // Fall back to word decoding below.
+                }
+            }
             return decodeString(raw);
         }
 

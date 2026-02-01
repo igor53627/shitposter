@@ -5,6 +5,7 @@ import time
 import threading
 import http.server
 import socketserver
+import base64
 from playwright.sync_api import sync_playwright
 
 PORT = 8081
@@ -86,6 +87,41 @@ class TestWebTerminal(unittest.TestCase):
             self.assertTrue(btn, "Keygen button should be enabled")
             print("[PASS] Buttons enabled.")
             
+            browser.close()
+
+    def test_encrypt_decrypt_with_base64_key(self):
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+
+            page.goto(f"http://localhost:{PORT}/index.html")
+            page.wait_for_selector("text=WebCrypto Secure Terminal Online", timeout=60000)
+
+            key_b64 = base64.b64encode(bytes(range(32))).decode("utf-8")
+            message = "hello from base64"
+
+            page.fill("#keyInput", key_b64)
+            page.fill("#mainInput", message)
+            page.click("#btnEncrypt")
+            page.wait_for_function(
+                "() => document.querySelector('#output').innerText !== 'Processing...'"
+            )
+
+            encrypted = page.inner_text("#output")
+            self.assertFalse(
+                encrypted.startswith("Error:"),
+                f"Unexpected error during encrypt: {encrypted}",
+            )
+
+            page.fill("#mainInput", encrypted)
+            page.click("#btnDecrypt")
+            page.wait_for_function(
+                "() => document.querySelector('#output').innerText !== 'Processing...'"
+            )
+
+            decrypted = page.inner_text("#output")
+            self.assertEqual(message, decrypted)
+
             browser.close()
 
 if __name__ == '__main__':
