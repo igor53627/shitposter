@@ -115,27 +115,40 @@
 
     <script>
         let pyodide;
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+
         async function initPyodide() {
             try {
+                console.log("Starting Pyodide initialization...");
+                statusEl.innerText = "Downloading WebAssembly (Pyodide)...";
                 pyodide = await loadPyodide();
-                statusEl.innerText = "Loading cryptography modules...";
+                
+                console.log("Pyodide loaded. Installing micropip...");
+                statusEl.innerText = "Installing package manager (micropip)...";
                 await pyodide.loadPackage(["micropip"]);
+                
+                console.log("Installing cryptography...");
+                statusEl.innerText = "Installing security modules (cryptography)...";
                 const micropip = pyodide.pyimport("micropip");
                 await micropip.install('cryptography');
                 
-                statusEl.innerText = "Syncing cipher logic...";
+                console.log("Fetching local cipher logic...");
+                statusEl.innerText = "Downloading cipher logic files...";
                 
                 // Fetch our local files and write them to Pyodide FS
                 const files = ['crypto.py', 'steg.py', 'stealth.py', 'fingerprint.py'];
                 const timestamp = new Date().getTime();
                 for (const f of files) {
+                    console.log(`Fetching ${f}...`);
                     const resp = await fetch(`${f}?v=${timestamp}`);
                     if (!resp.ok) throw new Error(`Failed to fetch ${f}: ${resp.status}`);
                     const text = await resp.text();
                     pyodide.FS.writeFile(f, text);
                 }
 
-                // Initialize our Bridge Code
+                console.log("Initializing Python bridge...");
+                statusEl.innerText = "Configuring secure bridge...";
                 await pyodide.runPythonAsync(`
 
         async function doAction(action) {
