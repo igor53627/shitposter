@@ -175,8 +175,17 @@ def bridge_derive(peer_signal, my_priv_b64):
                 peer_pub = peer_pub[1:]
         else:
             raise ValueError("Not Base64")
-    except:
-        peer_pub = decode_string(peer_signal)
+    except Exception as e:
+        # Fallback to shitpost decoding if not base64
+        try:
+            peer_pub = decode_string(peer_signal)
+        except:
+            raise ValueError(f"Failed to decode key: {e}")
+            
+    if len(peer_pub) != 32:
+        # Convert to hex for debug
+        hex_val = "".join("{:02x}".format(x) for x in peer_pub)
+        raise ValueError(f"Invalid Key Length: Got {len(peer_pub)} bytes. Expected 32.\nHex: {hex_val}")
     
     keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
     
