@@ -14,7 +14,7 @@
     - All onboarded agents can decrypt the broadcast.
 
 ### Infrastructure
-- [ ] **Client-Side WASM:** Compile the crypto logic to WebAssembly so it can run in a browser extension or a lightweight JS bot without a backend.
+- [ ] **Client-Side WebCrypto:** Use WebCrypto + JS X25519 so the browser client can run without a backend.
 
 ## In Progress
 *(None)*

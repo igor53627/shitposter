@@ -4,263 +4,499 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shitposter Cipher - Secure Web Terminal</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #1a1a1a;
-            color: #d4d4d4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            width: 90%;
-            max-width: 800px;
-            background-color: #252526;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-        h1 {
-            text-align: center;
-            color: #569cd6;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 0.5rem;
-        }
-        .status {
-            text-align: center;
-            font-size: 0.8rem;
-            margin-bottom: 1rem;
-            color: #ce9178;
-        }
-        textarea, input {
-            width: 100%;
-            background-color: #1e1e1e;
-            border: 1px solid #3c3c3c;
-            color: #d4d4d4;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        textarea { height: 120px; resize: vertical; }
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 1rem;
-        }
-        button {
-            background-color: #0e639c;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button:hover { background-color: #1177bb; }
-        button:disabled { background-color: #333; cursor: not-allowed; }
-        .label { font-size: 0.9rem; margin-bottom: 0.3rem; color: #9cdcfe; }
-        .output-container {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #333;
-        }
-        #output {
-            background-color: #000;
-            color: #4ec9b0;
-            padding: 1rem;
-            border-radius: 4px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            min-height: 50px;
-        }
-        .copy-btn { margin-top: 0.5rem; font-size: 0.7rem; padding: 0.3rem; width: auto; float: right; }
+      .table-container { max-height: 70vh; overflow-y: auto; }
+      .addr { font-family: monospace; font-size: 0.85em; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>SHITPOSTER TERMINAL</h1>
-        <div id="status" class="status">Initializing WebAssembly environment...</div>
+    <section class="section">
+        <div class="container">
+            <h1 class="title has-text-centered">Shitposter Terminal</h1>
+            <p id="status" class="has-text-centered has-text-grey">Initializing WebCrypto environment...</p>
 
-        <div class="label">Identity / Key File (JSON or Channel Words)</div>
-        <textarea id="keyInput" placeholder="Paste your session.json or channel words here..."></textarea>
+            <div class="field">
+                <label class="label">Identity / Key File (JSON or Channel Words)</label>
+                <div class="control">
+                    <textarea id="keyInput" class="textarea" placeholder="Paste your session.json or channel words here..."></textarea>
+                </div>
+            </div>
 
-        <div class="label">Input Text (Message to Encrypt, Shitpost to Decrypt, or Peer Key to Derive)</div>
-        <textarea id="mainInput" placeholder="Enter message, shitpost, or Peer Public Key..."></textarea>
+            <div class="field">
+                <label class="label">Input Text (Message to Encrypt, Shitpost to Decrypt, or Peer Key to Derive)</label>
+                <div class="control">
+                    <textarea id="mainInput" class="textarea" placeholder="Enter message, shitpost, or Peer Public Key..."></textarea>
+                </div>
+            </div>
 
-        <div class="controls">
-            <button id="btnEncrypt" onclick="doAction('encrypt')" disabled>ENCRYPT (STEALTH)</button>
-            <button id="btnDecrypt" onclick="doAction('decrypt')" disabled>DECRYPT</button>
+            <div class="columns">
+                <div class="column">
+                    <button id="btnEncrypt" class="button is-link is-fullwidth" onclick="doAction('encrypt')" disabled>ENCRYPT (STEALTH)</button>
+                </div>
+                <div class="column">
+                    <button id="btnDecrypt" class="button is-link is-fullwidth" onclick="doAction('decrypt')" disabled>DECRYPT</button>
+                </div>
+            </div>
+            
+            <div class="columns">
+                <div class="column">
+                    <button id="btnKeygen" class="button is-info is-fullwidth" onclick="doAction('keygen')" disabled>GENERATE IDENTITY</button>
+                </div>
+                <div class="column">
+                    <button id="btnDerive" class="button is-info is-fullwidth" onclick="doAction('derive')" disabled>DERIVE SESSION</button>
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Console Output</label>
+                <pre id="output" class="box has-background-dark has-text-success is-family-monospace">System ready.</pre>
+                <button class="button is-small is-light" onclick="copyOutput()">COPY TO CLIPBOARD</button>
+            </div>
         </div>
-        
-        <div class="controls">
-            <button id="btnKeygen" onclick="doAction('keygen')" disabled>GENERATE IDENTITY</button>
-            <button id="btnDerive" onclick="doAction('derive')" disabled>DERIVE SESSION</button>
-        </div>
+    </section>
+<script type="module">
+        import { x25519 } from "https://esm.sh/@noble/curves@1.4.0/ed25519";
 
-        <div class="output-container">
-            <div class="label">Console Output</div>
-            <div id="output">System ready.</div>
-            <button class="copy-btn" onclick="copyOutput()">COPY TO CLIPBOARD</button>
-        </div>
-    </div>
-
-    <script>
-        let pyodide;
         const statusEl = document.getElementById('status');
         const outputEl = document.getElementById('output');
+        const keyInputEl = document.getElementById('keyInput');
+        const mainInputEl = document.getElementById('mainInput');
 
-        async function initPyodide() {
-            try {
-                console.log("Starting Pyodide initialization...");
-                statusEl.innerText = "Downloading WebAssembly (Pyodide)...";
-                pyodide = await loadPyodide();
-                
-                console.log("Pyodide loaded. Installing micropip...");
-                statusEl.innerText = "Installing package manager (micropip)...";
-                await pyodide.loadPackage(["micropip"]);
-                
-                console.log("Installing cryptography...");
-                statusEl.innerText = "Installing security modules (cryptography)...";
-                const micropip = pyodide.pyimport("micropip");
-                await micropip.install('cryptography');
-                
-                console.log("Fetching local cipher logic...");
-                statusEl.innerText = "Downloading cipher logic files...";
-                
-                // Fetch our local files and write them to Pyodide FS
-                const files = ['crypto.py', 'steg.py', 'stealth.py', 'fingerprint.py'];
-                const timestamp = new Date().getTime();
-                for (const f of files) {
-                    console.log(`Fetching ${f}...`);
-                    const resp = await fetch(`${f}?v=${timestamp}`);
-                    if (!resp.ok) throw new Error(`Failed to fetch ${f}: ${resp.status}`);
-                    const text = await resp.text();
-                    pyodide.FS.writeFile(f, text);
-                }
+        const WORDLIST = [
+            "agent", "alignment", "algorithm", "api", "architecture", "array", "artifact", "asset",
+            "autonomous", "backend", "bandwidth", "baseline", "batch", "benchmark", "bias", "binary",
+            "bitcoin", "block", "bot", "buffer", "bug", "build", "byte", "cache",
+            "canvas", "cap", "chain", "channel", "chat", "checkpoint", "chip", "cipher",
+            "circuit", "cloud", "cluster", "code", "cognitive", "commit", "compile", "compute",
+            "config", "connect", "console", "constant", "context", "contract", "control", "core",
+            "crypto", "cuda", "cycle", "daemon", "data", "database", "debug", "decimal",
+            "decode", "deep", "default", "define", "deploy", "depth", "design", "device",
+            "digital", "dimension", "disk", "distributed", "dns", "docker", "domain", "drive",
+            "driver", "dump", "dynamic", "edge", "editor", "effect", "element", "embedding",
+            "encode", "engine", "entropy", "epoch", "error", "ether", "event", "execution",
+            "expert", "exploit", "export", "extension", "feature", "field", "file", "filter",
+            "firewall", "firmware", "flag", "flash", "float", "flow", "flux", "folder",
+            "fork", "form", "frame", "framework", "function", "future", "game", "gateway",
+            "generate", "generator", "git", "glitch", "global", "goal", "gpu", "gradient",
+            "graph", "grid", "hack", "hardware", "hash", "head", "heap", "host",
+            "hugging", "hyper", "image", "import", "index", "inference", "info", "input",
+            "install", "instance", "integer", "integration", "interface", "internet", "interpreter", "interrupt",
+            "ip", "iteration", "java", "job", "json", "kernel", "key", "keyboard",
+            "keyword", "label", "language", "latency", "layer", "layout", "learning", "ledger",
+            "library", "license", "limit", "link", "linux", "list", "load", "local",
+            "lock", "log", "logic", "login", "loop", "loss", "machine", "macro",
+            "main", "map", "mask", "matrix", "memory", "merge", "mesh", "meta",
+            "method", "metric", "micro", "miner", "model", "mode", "module", "monitor",
+            "mouse", "move", "net", "network", "neural", "node", "noise", "nonce",
+            "norm", "null", "number", "object", "offset", "open", "operator", "optimize",
+            "option", "oracle", "output", "overflow", "overlay", "packet", "page", "panel",
+            "parameter", "parse", "patch", "path", "pattern", "peer", "performance", "perl",
+            "permission", "phone", "pipeline", "pixel", "platform", "plugin", "pointer", "policy",
+            "pool", "port", "post", "power", "precision", "predict", "prefix", "process",
+            "profile", "program", "prompt", "protocol", "proxy", "public", "push", "python",
+            "query", "queue", "ram", "random", "range", "rank", "rate", "raw"
+        ];
 
-                console.log("Initializing Python bridge...");
-                statusEl.innerText = "Configuring secure bridge...";
-                pyodide.runPython(`
-import sys
-print("Python Bridge Loading...")
-import json
-import base64
-from crypto import ShitposterCrypto
-from steg import encode_bytes, decode_string
-from stealth import generate_stealth_text
-from fingerprint import get_fingerprint
+        const WORD_TO_BYTE = new Map(WORDLIST.map((word, index) => [word, index]));
 
-print("Imports successful.")
+        const TEMPLATES = [
+            "Honestly, I think the {} is causing the lag.",
+            "Did you check if the {} configures the {} correctly?",
+            "The documentation for {} says it depends on {} but that seems wrong.",
+            "My readout is showing a weird fault in the {} tier.",
+            "Why does the {} always break when I touch the {}?",
+            "It is basically a {} issue, not an equipment problem.",
+            "I rewrote the {} to improve the {} usage.",
+            "The new update deprecated the {} behavior.",
+            "Can we talk about how bad the {} support is?",
+            "Just use a {} wrapper around the {} and it should work.",
+            "The {} velocity is bottlenecked by the {}.",
+            "I suspect the {} is conflicting with the {}.",
+            "Is there a reason the {} is not compatible with {}?",
+            "The {} implementation in this project is terrible.",
+            "Make sure to enable the {} toggle before running the {}."
+        ];
 
-CRYPTO = ShitposterCrypto()
-# ... (rest of the code is same, no changes needed to logic)
+        const CONNECTORS = [
+            "Essentially,", "Basically,", "Actually,", "Honestly speaking,",
+            "Regarding the issue,", "Concerning the spec,", "With respect to the logs,",
+            "Even if we ignore that,", "Unless the setup is wrong,"
+        ];
 
+        const EMOJI_MAP = [
+            "\u{1F436}", "\u{1F431}", "\u{1F42D}", "\u{1F439}", "\u{1F430}", "\u{1F98A}", "\u{1F43B}", "\u{1F43C}",
+            "\u{1F428}", "\u{1F42F}", "\u{1F981}", "\u{1F42E}", "\u{1F437}", "\u{1F43D}", "\u{1F438}", "\u{1F435}",
+            "\u{1F414}", "\u{1F427}", "\u{1F426}", "\u{1F424}", "\u{1F423}", "\u{1F425}", "\u{1F986}", "\u{1F985}",
+            "\u{1F989}", "\u{1F987}", "\u{1F43A}", "\u{1F417}", "\u{1F434}", "\u{1F984}", "\u{1F41D}", "\u{1F41B}",
+            "\u{1F98B}", "\u{1F40C}", "\u{1F41E}", "\u{1F41C}", "\u{1F997}", "\u{1F577}", "\u{1F578}", "\u{1F982}",
+            "\u{1F422}", "\u{1F40D}", "\u{1F98E}", "\u{1F996}", "\u{1F995}", "\u{1F419}", "\u{1F991}", "\u{1F990}",
+            "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F42C}", "\u{1F433}", "\u{1F40B}",
+            "\u{1F988}", "\u{1F40A}", "\u{1F405}", "\u{1F406}", "\u{1F993}", "\u{1F98D}", "\u{1F9A7}", "\u{1F418}"
+        ];
 
-def bridge_keygen():
-    priv, pub_bytes = CRYPTO.generate_keypair()
-    priv_bytes = CRYPTO.get_private_bytes(priv)
-    return json.dumps({
-        "private_key_b64": base64.b64encode(priv_bytes).decode('utf-8'),
-        "public_signal": encode_bytes(pub_bytes)
-    })
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
 
-def bridge_derive(peer_signal, my_priv_b64):
-    priv_bytes = base64.b64decode(my_priv_b64)
-    priv_key = CRYPTO.load_private_key(priv_bytes)
-    
-    # Try Base64 input first
-    try:
-        if " " not in peer_signal.strip():
-            # Add padding just in case
-            b64_str = peer_signal.strip()
-            missing_padding = len(b64_str) % 4
-            if missing_padding:
-                b64_str += '=' * (4 - missing_padding)
-            peer_pub = base64.b64decode(b64_str)
-            
-            # Handle 33-byte keys (leading null byte)
-            if len(peer_pub) == 33 and peer_pub[0] == 0:
-                peer_pub = peer_pub[1:]
-        else:
-            raise ValueError("Not Base64")
-    except Exception as e:
-        # Fallback to shitpost decoding if not base64
-        try:
-            peer_pub = decode_string(peer_signal)
-        except:
-            raise ValueError(f"Failed to decode key: {e}")
-            
-    if len(peer_pub) != 32:
-        # Convert to hex for debug
-        hex_val = "".join("{:02x}".format(x) for x in peer_pub)
-        raise ValueError(f"Invalid Key Length: Got {len(peer_pub)} bytes. Expected 32. Hex: {hex_val}")
-    
-    keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
-    
-    fp = get_fingerprint(keys)
-    
-    return json.dumps({
-        "tx": base64.b64encode(keys['tx']).decode('utf-8'),
-        "rx": base64.b64encode(keys['rx']).decode('utf-8'),
-        "fingerprint": fp
-    })
-
-def bridge_encrypt(msg, key_json_or_words):
-    try:
-        data = json.loads(key_json_or_words)
-        key = base64.b64decode(data['tx'])
-    except:
-        key = decode_string(key_json_or_words)
-    
-    payload = CRYPTO.encrypt_message(key, msg)
-    from steg import WORDLIST
-    words = [WORDLIST[b] for b in payload]
-    return generate_stealth_text(words)
-
-def bridge_decrypt(shitpost, key_json_or_words):
-    try:
-        data = json.loads(key_json_or_words)
-        key = base64.b64decode(data['rx'])
-    except:
-        key = decode_string(key_json_or_words)
-        
-    payload = decode_string(shitpost)
-    return CRYPTO.decrypt_message(key, payload)
-                `);
-
-                statusEl.innerText = "WASM Secure Terminal Online";
-                statusEl.style.color = "#4ec9b0";
-                document.querySelectorAll('button').forEach(b => b.disabled = false);
-
-            } catch (err) {
-                console.error(err);
-                statusEl.innerText = "Initialization Failed: " + err.message;
-                statusEl.style.color = "#f44747";
+        function setStatus(text, color) {
+            statusEl.innerText = text;
+            if (color) {
+                statusEl.style.color = color;
             }
         }
 
+        function concatBytes(...chunks) {
+            const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+            const out = new Uint8Array(total);
+            let offset = 0;
+            for (const chunk of chunks) {
+                out.set(chunk, offset);
+                offset += chunk.length;
+            }
+            return out;
+        }
+
+        function normalizeBase64(value) {
+            let cleaned = value.trim().replace(/\s+/g, '');
+            const padding = cleaned.length % 4;
+            if (padding) {
+                cleaned += '='.repeat(4 - padding);
+            }
+            return cleaned;
+        }
+
+        function bytesToBase64(bytes) {
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += 1) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToBytes(value) {
+            const normalized = normalizeBase64(value);
+            const binary = atob(normalized);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i += 1) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        function bytesToHex(bytes) {
+            return Array.from(bytes)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        function encodeBytes(bytes) {
+            return Array.from(bytes, (b) => WORDLIST[b]).join(' ');
+        }
+
+        function decodeString(text) {
+            const cleaned = text.replace(/[^a-zA-Z\s]/g, ' ').toLowerCase();
+            const words = cleaned.split(/\s+/).filter(Boolean);
+            const out = [];
+            for (const word of words) {
+                if (WORD_TO_BYTE.has(word)) {
+                    out.push(WORD_TO_BYTE.get(word));
+                }
+            }
+            return new Uint8Array(out);
+        }
+
+        function generateStealthText(payloadWords) {
+            const result = [];
+            let index = 0;
+
+            while (index < payloadWords.length) {
+                const sentenceParts = [];
+
+                if (Math.random() < 0.3) {
+                    sentenceParts.push(CONNECTORS[Math.floor(Math.random() * CONNECTORS.length)]);
+                }
+
+                let template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+                let slots = (template.match(/\{\}/g) || []).length;
+
+                if (index + slots > payloadWords.length) {
+                    const singleSlot = TEMPLATES.filter((tmpl) => (tmpl.match(/\{\}/g) || []).length === 1);
+                    template = singleSlot[Math.floor(Math.random() * singleSlot.length)];
+                    slots = 1;
+                }
+
+                const chunk = payloadWords.slice(index, index + slots);
+                index += slots;
+
+                let filled = template;
+                for (const word of chunk) {
+                    filled = filled.replace("{}", word);
+                }
+
+                if (sentenceParts.length > 0) {
+                    const firstWord = filled.split(' ')[0];
+                    if (!['I', 'My', 'Did', 'Is', 'Why'].includes(firstWord)) {
+                        filled = filled[0].toLowerCase() + filled.slice(1);
+                    }
+                }
+
+                sentenceParts.push(filled);
+                result.push(sentenceParts.join(' '));
+            }
+
+            return result.join(' ');
+        }
+
+        function lexCompare(left, right) {
+            const minLen = Math.min(left.length, right.length);
+            for (let i = 0; i < minLen; i += 1) {
+                if (left[i] !== right[i]) {
+                    return left[i] - right[i];
+                }
+            }
+            return left.length - right.length;
+        }
+
+        async function deriveSessionKeys(privateKey, peerPublic) {
+            const myPublic = x25519.getPublicKey(privateKey);
+            const sharedSecret = x25519.getSharedSecret(privateKey, peerPublic);
+
+            const isAlice = lexCompare(myPublic, peerPublic) < 0;
+            const contextInfo = isAlice
+                ? concatBytes(myPublic, peerPublic)
+                : concatBytes(peerPublic, myPublic);
+
+            const salt = encoder.encode('shitposter-handshake-v2-salt');
+            const info = concatBytes(encoder.encode('session-keys|'), contextInfo);
+            const baseKey = await crypto.subtle.importKey('raw', sharedSecret, 'HKDF', false, ['deriveBits']);
+            const derivedBits = await crypto.subtle.deriveBits(
+                { name: 'HKDF', hash: 'SHA-256', salt, info },
+                baseKey,
+                64 * 8
+            );
+
+            const derived = new Uint8Array(derivedBits);
+            const keyA = derived.slice(0, 32);
+            const keyB = derived.slice(32);
+
+            return isAlice
+                ? { tx: keyA, rx: keyB }
+                : { tx: keyB, rx: keyA };
+        }
+
+        async function encryptMessage(key, plaintext) {
+            const nonce = crypto.getRandomValues(new Uint8Array(12));
+            const cryptoKey = await crypto.subtle.importKey('raw', key, 'AES-GCM', false, ['encrypt']);
+            const payload = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: nonce },
+                cryptoKey,
+                encoder.encode(plaintext)
+            );
+            return concatBytes(nonce, new Uint8Array(payload));
+        }
+
+        async function decryptMessage(key, payload) {
+            const nonce = payload.slice(0, 12);
+            const ciphertext = payload.slice(12);
+            const cryptoKey = await crypto.subtle.importKey('raw', key, 'AES-GCM', false, ['decrypt']);
+            const plaintext = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: nonce },
+                cryptoKey,
+                ciphertext
+            );
+            return decoder.decode(plaintext);
+        }
+
+        async function getFingerprint(sessionKeys) {
+            const combined = concatBytes(sessionKeys.tx, sessionKeys.rx);
+            const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', combined));
+            const indices = digest.slice(0, 4);
+            return Array.from(indices, (idx) => EMOJI_MAP[idx % 64]).join(' ');
+        }
+
+        function parseSessionJson(raw) {
+            try {
+                const data = JSON.parse(raw);
+                if (data && typeof data === 'object') {
+                    return data;
+                }
+            } catch (err) {
+                return null;
+            }
+            return null;
+        }
+
+        function parseKeyInput(raw, mode) {
+            const session = parseSessionJson(raw);
+            if (session && session[mode]) {
+                return base64ToBytes(session[mode]);
+            }
+            return decodeString(raw);
+        }
+
+        async function bridgeKeygen() {
+            const privateKey = x25519.utils.randomPrivateKey();
+            const publicKey = x25519.getPublicKey(privateKey);
+            return {
+                private_key_b64: bytesToBase64(privateKey),
+                public_signal: encodeBytes(publicKey)
+            };
+        }
+
+        async function bridgeDerive(peerSignal, myPrivB64) {
+            const privateKey = base64ToBytes(myPrivB64);
+            let peerPublic;
+            const trimmed = peerSignal.trim();
+
+            if (trimmed && !/\s/.test(trimmed)) {
+                try {
+                    peerPublic = base64ToBytes(trimmed);
+                    if (peerPublic.length === 33 && peerPublic[0] === 0) {
+                        peerPublic = peerPublic.slice(1);
+                    }
+                } catch (err) {
+                    peerPublic = decodeString(peerSignal);
+                }
+            } else {
+                peerPublic = decodeString(peerSignal);
+            }
+
+            if (peerPublic.length !== 32) {
+                throw new Error(`Invalid Key Length: Got ${peerPublic.length} bytes. Expected 32. Hex: ${bytesToHex(peerPublic)}`);
+            }
+
+            const keys = await deriveSessionKeys(privateKey, peerPublic);
+            const fingerprint = await getFingerprint(keys);
+
+            return {
+                tx: bytesToBase64(keys.tx),
+                rx: bytesToBase64(keys.rx),
+                fingerprint
+            };
+        }
+
+        async function bridgeEncrypt(message, keyInput) {
+            const key = parseKeyInput(keyInput, 'tx');
+            if (key.length !== 32) {
+                throw new Error('Invalid key length. Expected 32 bytes.');
+            }
+            const payload = await encryptMessage(key, message);
+            const words = Array.from(payload, (b) => WORDLIST[b]);
+            return generateStealthText(words);
+        }
+
+        async function bridgeDecrypt(shitpost, keyInput) {
+            const key = parseKeyInput(keyInput, 'rx');
+            if (key.length !== 32) {
+                throw new Error('Invalid key length. Expected 32 bytes.');
+            }
+            const payload = decodeString(shitpost);
+            return decryptMessage(key, payload);
+        }
+
         async function doAction(action) {
-            const input = document.getElementById('mainInput').value.trim();
-            const key = document.getElementById('keyInput').value.trim();
-            outputEl.innerText = "Processing...";
+            const input = mainInputEl.value.trim();
+            const keyInput = keyInputEl.value.trim();
+            outputEl.innerText = 'Processing...';
 
             try {
-                let result;
                 if (action === 'keygen') {
-                    // ...
-                } 
-                else if (action === 'derive') {
-                    if (!input) throw new Error("Please paste the Peer's Public Key into the 'Input Text' box below.");
-                    const myPriv = prompt("Enter your Private Key (Base64):");
-                    if (!myPriv) return;
-                    result = pyodide.globals.get('bridge_derive')(input, myPriv);
-                    // ...
+                    const result = await bridgeKeygen();
+                    outputEl.innerText = `PUBLIC SIGNAL:\n${result.public_signal}\n\nPRIVATE KEY (BASE64):\n${result.private_key_b64}`;
+                    return;
+                }
+
+                if (action === 'derive') {
+                    if (!input) {
+                        throw new Error("Please paste the Peer's Public Key into the 'Input Text' box below.");
+                    }
+                    const myPriv = prompt('Enter your Private Key (Base64):');
+                    if (!myPriv) {
+                        outputEl.innerText = 'Cancelled.';
+                        return;
+                    }
+                    const result = await bridgeDerive(input, myPriv);
+                    const sessionJson = {
+                        tx: result.tx,
+                        rx: result.rx
+                    };
+                    keyInputEl.value = JSON.stringify(sessionJson, null, 2);
+                    outputEl.innerText = `SESSION JSON:\n${JSON.stringify(sessionJson, null, 2)}\n\nFINGERPRINT: ${result.fingerprint}`;
+                    return;
+                }
+
+                if (action === 'encrypt') {
+                    if (!input) {
+                        throw new Error('Enter a message to encrypt.');
+                    }
+                    if (!keyInput) {
+                        throw new Error('Paste a session JSON (tx/rx) or channel words first.');
+                    }
+                    const result = await bridgeEncrypt(input, keyInput);
+                    outputEl.innerText = result;
+                    return;
+                }
+
+                if (action === 'decrypt') {
+                    if (!input) {
+                        throw new Error('Enter a shitpost to decrypt.');
+                    }
+                    if (!keyInput) {
+                        throw new Error('Paste a session JSON (tx/rx) or channel words first.');
+                    }
+                    const result = await bridgeDecrypt(input, keyInput);
+                    outputEl.innerText = result;
+                    return;
+                }
+
+                outputEl.innerText = 'Unknown action.';
+            } catch (err) {
+                outputEl.innerText = `Error: ${err.message}`;
+            }
+        }
+
+        async function copyOutput() {
+            const text = outputEl.innerText.trim();
+            if (!text) {
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const temp = document.createElement('textarea');
+                    temp.value = text;
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(temp);
+                }
+                outputEl.innerText = `${text}\n\n[Copied to clipboard]`;
+            } catch (err) {
+                outputEl.innerText = `${text}\n\n[Copy failed: ${err.message}]`;
+            }
+        }
+
+        async function initTerminal() {
+            try {
+                if (!window.crypto || !window.crypto.subtle) {
+                    throw new Error('WebCrypto unavailable in this browser.');
+                }
+                setStatus('WebCrypto Secure Terminal Online', '#4ec9b0');
+                document.querySelectorAll('button').forEach((button) => {
+                    button.disabled = false;
+                });
+            } catch (err) {
+                console.error(err);
+                setStatus(`Initialization Failed: ${err.message}`, '#f44747');
+            }
+        }
+
+        window.doAction = doAction;
+        window.copyOutput = copyOutput;
+
+        initTerminal();
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 ---
 title: Shitposter API
-emoji: 🛡️
+emoji: shield
 colorFrom: gray
 colorTo: gray
 sdk: docker
@@ -28,6 +28,15 @@ It hides strong encryption (AES-256) inside "AI Technobabble" (e.g., "The tensor
 *   **Stealth Mode:** Wraps encrypted data into natural-sounding grammatical sentences (e.g., technical complaints).
 *   **Scanner:** Automatically detects and extracts hidden keys or messages from large blocks of text (like Reddit threads).
 *   **OpenClawd Ready:** Includes a `SKILL.md` for integration with OpenClawd AI agents.
+
+## Documentation
+
+- `docs/ARCHITECTURE.md` - System components and data flow
+- `docs/DEPLOYMENT.md` - Local, Docker, and Pages deployment
+- `docs/API_ENDPOINTS.md` - HTTP API routes and payloads
+- `docs/FEATURE_FLAGS.md` - Runtime flags and configuration
+- `docs/RUNBOOKS/README.md` - Operational procedures
+- `docs/ADR/README.md` - Architecture decision record index
 
 ## Quick Start for Agents (Public API)
 
@@ -154,7 +163,7 @@ For users who want to communicate without installing anything or trusting a serv
 
 **URL:** `https://igor53627.github.io/shitposter/` (If hosted on GH Pages)
 
-This terminal runs the entire cipher logic in your browser using **WebAssembly**. Your keys never leave your machine.
+This terminal runs the entire cipher logic in your browser using **WebCrypto** (plus a JS X25519 implementation). Your keys never leave your machine.
 
 ## Agent Instructions: Mutating the Vocabulary
 
