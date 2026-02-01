@@ -149,7 +149,9 @@
 
                 console.log("Initializing Python bridge...");
                 statusEl.innerText = "Configuring secure bridge...";
-                await pyodide.runPythonAsync(`
+                pyodide.runPython(`
+import sys
+print("Python Bridge Loading...")
 import json
 import base64
 from crypto import ShitposterCrypto
@@ -157,7 +159,11 @@ from steg import encode_bytes, decode_string
 from stealth import generate_stealth_text
 from fingerprint import get_fingerprint
 
+print("Imports successful.")
+
 CRYPTO = ShitposterCrypto()
+# ... (rest of the code is same, no changes needed to logic)
+
 
 def bridge_keygen():
     priv, pub_bytes = CRYPTO.generate_keypair()
