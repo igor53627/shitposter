@@ -150,6 +150,97 @@
                 console.log("Initializing Python bridge...");
                 statusEl.innerText = "Configuring secure bridge...";
                 await pyodide.runPythonAsync(`
+import json
+import base64
+from crypto import ShitposterCrypto
+from steg import encode_bytes, decode_string
+from stealth import generate_stealth_text
+from fingerprint import get_fingerprint
+
+CRYPTO = ShitposterCrypto()
+
+def bridge_keygen():
+    priv, pub_bytes = CRYPTO.generate_keypair()
+    priv_bytes = CRYPTO.get_private_bytes(priv)
+    return json.dumps({
+        "private_key_b64": base64.b64encode(priv_bytes).decode('utf-8'),
+        "public_signal": encode_bytes(pub_bytes)
+    })
+
+def bridge_derive(peer_signal, my_priv_b64):
+    priv_bytes = base64.b64decode(my_priv_b64)
+    priv_key = CRYPTO.load_private_key(priv_bytes)
+    
+    # Try Base64 input first
+    try:
+        if " " not in peer_signal.strip():
+            # Add padding just in case
+            b64_str = peer_signal.strip()
+            missing_padding = len(b64_str) % 4
+            if missing_padding:
+                b64_str += '=' * (4 - missing_padding)
+            peer_pub = base64.b64decode(b64_str)
+            
+            # Handle 33-byte keys (leading null byte)
+            if len(peer_pub) == 33 and peer_pub[0] == 0:
+                peer_pub = peer_pub[1:]
+        else:
+            raise ValueError("Not Base64")
+    except Exception as e:
+        # Fallback to shitpost decoding if not base64
+        try:
+            peer_pub = decode_string(peer_signal)
+        except:
+            raise ValueError(f"Failed to decode key: {e}")
+            
+    if len(peer_pub) != 32:
+        # Convert to hex for debug
+        hex_val = "".join("{:02x}".format(x) for x in peer_pub)
+        raise ValueError(f"Invalid Key Length: Got {len(peer_pub)} bytes. Expected 32. Hex: {hex_val}")
+    
+    keys = CRYPTO.derive_shared_secret(priv_key, peer_pub)
+    
+    fp = get_fingerprint(keys)
+    
+    return json.dumps({
+        "tx": base64.b64encode(keys['tx']).decode('utf-8'),
+        "rx": base64.b64encode(keys['rx']).decode('utf-8'),
+        "fingerprint": fp
+    })
+
+def bridge_encrypt(msg, key_json_or_words):
+    try:
+        data = json.loads(key_json_or_words)
+        key = base64.b64decode(data['tx'])
+    except:
+        key = decode_string(key_json_or_words)
+    
+    payload = CRYPTO.encrypt_message(key, msg)
+    from steg import WORDLIST
+    words = [WORDLIST[b] for b in payload]
+    return generate_stealth_text(words)
+
+def bridge_decrypt(shitpost, key_json_or_words):
+    try:
+        data = json.loads(key_json_or_words)
+        key = base64.b64decode(data['rx'])
+    except:
+        key = decode_string(key_json_or_words)
+        
+    payload = decode_string(shitpost)
+    return CRYPTO.decrypt_message(key, payload)
+                `);
+
+                statusEl.innerText = "WASM Secure Terminal Online";
+                statusEl.style.color = "#4ec9b0";
+                document.querySelectorAll('button').forEach(b => b.disabled = false);
+
+            } catch (err) {
+                console.error(err);
+                statusEl.innerText = "Initialization Failed: " + err.message;
+                statusEl.style.color = "#f44747";
+            }
+        }
 
         async function doAction(action) {
             const input = document.getElementById('mainInput').value.trim();
